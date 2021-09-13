@@ -17,14 +17,12 @@ const discord_bot_header = process.env.BOT_HEADER
 const interval = 0.5
 
 exports.helloPubSub = (event, context) => {
-  searchAndSendTweet().then(() => {})
-
+  searchAndPostTweet().then(() => {})
 };
 
 
 async function searchTweets(){
   const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(search_term)}&tweet.fields=referenced_tweets,author_id,created_at`
-  console.log(url)
 	const {body} = await got.get(url, {
 		responseType: 'json',
     headers: {
@@ -34,19 +32,19 @@ async function searchTweets(){
     return body
 }
 
-async function searchAndSendTweet(){
+async function searchAndPostTweet(){
   const result = await searchTweets()
-  startTime = Date.now() - (interval * 60 * 60 * 1000)
-  console.log(result)
-  const filteredTweets = result.data.filter((item) => checkRefTweet(item)).filter((item) => Date.parse(item.created_at) >= startTime)
-  const tweetUrls = await Promise.all(filteredTweets.map((item) => createTweetUrls(item)))
-  if(tweetUrls.length > 0){
-    await postToDiscord(tweetUrls)
+  if(result.meta.result_count != 0){
+    startTime = Date.now() - (interval * 60 * 60 * 1000)
+    const filteredTweets = result.data.filter((item) => checkRefTweet(item)).filter((item) => Date.parse(item.created_at) >= startTime)
+    const tweetUrls = await Promise.all(filteredTweets.map((item) => createTweetUrls(item)))
+    if(tweetUrls.length > 0){
+      await postToDiscord(tweetUrls)
+    }
   }
 };
 
 async function createTweetUrls(tweet){
-  console.log(tweet.author_id)
 	const {body} = await got.get(encodeURI(`https://api.twitter.com/2/users/${tweet.author_id}`), {
 		responseType: 'json',
     headers: {
