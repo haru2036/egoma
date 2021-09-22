@@ -11,7 +11,7 @@ const twitterToken = process.env.TWITTER_TOKEN
 const webhookEndPoint = process.env.DISCORD_ENDPOINT
 const search_term = process.env.SEARCH_TERM
 const discord_bot_name = process.env.BOT_NAME
-const discord_bot_header = process.env.BOT_HEADER
+const messages = process.env.EGOMA_MESSAGES
 
 //interval in hours
 const interval = 0.5
@@ -57,14 +57,39 @@ async function createTweetUrls(tweet){
 }
 
 async function postToDiscord(urls){
+  var parsedMessages = JSON.parse(messages)
+  var message = pickRandomMessage(parsedMessages)
   const {body} = await got.post(webhookEndPoint, {
 		json: {
 			username: discord_bot_name,
-			content: `${discord_bot_header}\r\n${urls.join('\r\n')}`
+			content: `${message}\r\n${urls.join('\r\n')}`
 		},
 		responseType: 'json'
 	});
   
+}
+
+function pickRandomMessage(messages){
+  const wholeFreqCount = messages.reduce((acc, obj) => {
+    return obj.frequency + acc
+  }, 0)
+  const random = Math.ceil(Math.random() * wholeFreqCount)
+  console.log(messages)
+  console.log(random)
+  const pickedMessage = pickMessageFromRandomValue(random, wholeFreqCount, messages)
+  console.log(pickedMessage)
+  return pickedMessage
+}
+
+function pickMessageFromRandomValue(randomValue, freqCountRemaining, array){
+  const arrayHead = array.shift()
+  console.log(arrayHead)
+  const remainingCount = freqCountRemaining - arrayHead.frequency
+  if(remainingCount < randomValue){
+    return arrayHead.message
+  }else{
+    return pickMessageFromRandomValue(randomValue, remainingCount, array)
+  }
 }
 
 function checkRefTweet(item){
