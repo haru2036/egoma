@@ -2,8 +2,8 @@
   "name": "sample-pubsub",
   "version": "0.0.1",
   "dependencies": {
-    "@google-cloud/functions-framework": "^1.9.0",
-    "@google-cloud/pubsub": "^0.18.0",
+    "@google-cloud/functions-framework": "^2.1.1",
+    "@google-cloud/pubsub": "^2.18.5",
     "got": "^11.8.2"
   }
 }
